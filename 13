@@ -1,0 +1,103 @@
+from scapy.all import *
+from collections import Counter
+
+packets = []
+
+def capture_packets():
+    global packets
+    print("Capturing 20 packets...")
+
+    packets = sniff(count=20, timeout=60)
+
+    print("\nPacket Capture Completed!")
+
+    for packet in packets:
+        print(packet.summary())
+
+def analyze_packets():
+    if not packets:
+        print("Capture packets first!")
+        return
+
+    protocols = Counter()
+
+    for packet in packets:
+        if TCP in packet:
+            protocols["TCP"] += 1
+        elif UDP in packet:
+            protocols["UDP"] += 1
+        elif ICMP in packet:
+            protocols["ICMP"] += 1
+        elif IP in packet:
+            protocols["IP"] += 1
+        else:
+            protocols["Other"] += 1
+
+    print("\nProtocol Statistics:")
+    for protocol, count in protocols.items():
+        print(protocol, ":", count)
+
+    print("Total Packets:", len(packets))
+    print("Total Bytes:", sum(len(p) for p in packets))
+
+def filter_packets():
+    if not packets:
+        print("Capture packets first!")
+        return
+
+    print("\n1. TCP")
+    print("2. UDP")
+    print("3. ICMP")
+    print("4. DNS")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        filtered = [p for p in packets if TCP in p]
+    elif choice == "2":
+        filtered = [p for p in packets if UDP in p]
+    elif choice == "3":
+        filtered = [p for p in packets if ICMP in p]
+    elif choice == "4":
+        filtered = [p for p in packets if DNS in p]
+    else:
+        print("Invalid choice!")
+        return
+
+    print("\nFiltered Packets:")
+    for packet in filtered:
+        print(packet.summary())
+
+    print("Total Matching Packets:", len(filtered))
+
+def save_packets():
+    if not packets:
+        print("Capture packets first!")
+        return
+
+    wrpcap("capture.pcap", packets)
+    print("Packets saved to capture.pcap")
+
+while True:
+    print("\n===== Network Packet Analyzer =====")
+    print("1. Capture Packets")
+    print("2. Analyze Statistics")
+    print("3. Filter Packets")
+    print("4. Save Packets")
+    print("5. Exit")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        capture_packets()
+    elif choice == "2":
+        analyze_packets()
+    elif choice == "3":
+        filter_packets()
+    elif choice == "4":
+        save_packets()
+    elif choice == "5":
+        print("Program Ended.")
+        break
+    else:
+        print("Invalid choice!")
